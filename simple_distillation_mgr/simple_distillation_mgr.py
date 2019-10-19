@@ -18,19 +18,37 @@ import signal
 import sys
 sys.path.insert(1, '/kettlebell-riak-driver')
 from parameters import parameter
+from column_ctrl_mgr import ColumnCtrlMgr
 import data_table
 
 import distillate_quality_circuit
 import source_composition_circuit
 
+column_ctrl_mgr = ColumnCtrlMgr()
+
 # Thread list
 threads = []
 
+def LabColumnIdGet():
+    """ Deliver LabColumn columnId """
+    output = 0
+    columnData = column_ctrl_mgr.DataGet()
+    for i in range(0, len(columnData)):
+        columnName = columnData[i][parameter.ColumnCtrlParams["columnName"]]
+        columnName = columnName.decode('utf-8')
+        if columnName == "LabColumn":
+            output = columnData[i][parameter.ColumnCtrlParams["columnId"]]
+    return output
+
+
 def main():
     """ Start all Control Circuit managers. When any manager finishes his work, kill docker """
+    # Deliver LabColumn columnId
+    columnId = LabColumnIdGet()
+
     # Create new threads
-    thread1 = distillate_quality_circuit.distillateQualityCircuit(1, 2)
-    thread2 = source_composition_circuit.sourceCompositionCircuit(2, 2)
+    thread1 = distillate_quality_circuit.distillateQualityCircuit(1, columnId)
+    thread2 = source_composition_circuit.sourceCompositionCircuit(2, columnId)
 
     # Start new Threads
     thread1.start()
