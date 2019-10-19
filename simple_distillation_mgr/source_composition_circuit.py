@@ -21,7 +21,7 @@ from parameters import parameter
 import data_table
 
 class sourceCompositionCircuit (threading.Thread):
-    def __init__(self, threadID):
+    def __init__(self, threadID, columnId):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = "sourceComposition"

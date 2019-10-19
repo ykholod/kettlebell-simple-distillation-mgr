@@ -27,9 +27,10 @@ import source_composition_circuit
 threads = []
 
 def main():
+    """ Start all Control Circuit managers. When any manager finishes his work, kill docker """
     # Create new threads
-    thread1 = distillate_quality_circuit.distillateQualityCircuit(1)
-    thread2 = source_composition_circuit.sourceCompositionCircuit(2)
+    thread1 = distillate_quality_circuit.distillateQualityCircuit(1, 2)
+    thread2 = source_composition_circuit.sourceCompositionCircuit(2, 2)
 
     # Start new Threads
     thread1.start()
@@ -42,8 +43,6 @@ def main():
     # Wait for all threads to complete
     for t in threads:
         t.join()
-
-    print("Exiting Main Thread")
 
     # exit daemon
     os.kill(1, signal.SIGKILL)
