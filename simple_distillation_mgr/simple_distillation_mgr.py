@@ -42,7 +42,8 @@ def LabColumnIdGet():
 
 
 def main():
-    """ Start all Control Circuit managers. When any manager finishes his work, kill docker """
+    """ Start all Control Circuit managers.
+        When any manager finishes his work, kill docker """
     # Deliver LabColumn columnId
     columnId = LabColumnIdGet()
 

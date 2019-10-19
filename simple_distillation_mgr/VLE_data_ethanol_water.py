@@ -222,4 +222,3 @@ vle_data_bubble[4] = 91.50
 vle_data_bubble[3] = 93.01
 vle_data_bubble[2] = 94.89
 vle_data_bubble[1] = 97.25
-

@@ -25,8 +25,9 @@ import PID
 
 column_ctrl_mgr = ColumnCtrlMgr()
 
-class sourceCompositionCircuit (threading.Thread):
-    """ Bottom column temperature manager. Temperature is controlled by simple PID algorithm """
+class sourceCompositionCircuit(threading.Thread):
+    """ Bottom column temperature manager.
+        Temperature is controlled by simple PID algorithm """
 
     def __init__(self, threadID, columnId):
         """ Initialize Control Circuit variables and set parameters """
@@ -106,7 +107,7 @@ class sourceCompositionCircuit (threading.Thread):
         if totalSpiritLosses < self.mashSpiritVolume:
             # Spirit left in cube and mash concentration
             mashSpiritLeftovers = self.mashSpiritVolume - totalSpiritLosses
-            currentMashConcentration = mashSpiritLeftovers / (self.mashVolume - distilledSpiritVolume - atmosphereLosses)
+            currentMashConcentration = (mashSpiritLeftovers / (self.mashVolume - distilledSpiritVolume - atmosphereLosses)) * 100
 
             # Get mash bubbling point ideal temperature
             idealTempCels = mixture.vle_data_bubble[round(currentMashConcentration)]

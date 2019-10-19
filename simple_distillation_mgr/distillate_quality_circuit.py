@@ -13,7 +13,6 @@ __status__ = "Development"
 
 import threading
 import time
-import os
 import signal
 import sys
 sys.path.insert(1, '/kettlebell-riak-driver')
@@ -25,8 +24,9 @@ import PID
 
 column_ctrl_mgr = ColumnCtrlMgr()
 
-class distillateQualityCircuit (threading.Thread):
-    """ Top column temperature manager. Temperature is controlled by simple PID algorithm """
+class distillateQualityCircuit(threading.Thread):
+    """ Top column temperature manager.
+        Temperature is controlled by simple PID algorithm """
 
     def __init__(self, threadId, columnId):
         """ Initialize Control Circuit variables and set parameters """
@@ -51,7 +51,7 @@ class distillateQualityCircuit (threading.Thread):
 
             self.pid.update(temperature)
             coolerValue = int(self.pid.output)
-            coolerValue = max(min(coolerValue, 100 ), 10)
+            coolerValue = max(min(coolerValue, 100), 10)
 
             # Apply cooler setting
             data_table.dataTableSet(parameter.ControlPump, coolerValue)
