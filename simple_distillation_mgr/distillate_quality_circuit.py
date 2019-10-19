@@ -39,7 +39,7 @@ class distillateQualityCircuit(threading.Thread):
         distillateQuality = round(column_data[parameter.ColumnCtrlParams["distilateConcentration"]])
 
         # Configure PID parameters
-        self.pid = PID.PID(10, 1, 1) # TBD ykholod: adjust to particular column. Probably Lastovyak can help!
+        self.pid = PID.PID(5, 1, 0) # TBD ykholod: adjust to particular column. Probably Lastovyak can help!
         self.pid.SetPoint = mixture.vle_data_dew[distillateQuality] # Set ideal TopTemp for our quality
         self.pid.setSampleTime(10) # PID computes new value each 10 sec
 

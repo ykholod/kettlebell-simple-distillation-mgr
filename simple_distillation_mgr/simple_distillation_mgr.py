@@ -47,6 +47,19 @@ def main():
     # Deliver LabColumn columnId
     columnId = LabColumnIdGet()
 
+    # Save distillation start time
+    now = int(round(time.time() * 1000))
+    columnData = column_ctrl_mgr.RowGet(columnId)
+    column_ctrl_mgr.RowModify(columnData[parameter.ColumnCtrlParams["columnName"]],
+                              columnId,
+                              columnData[parameter.ColumnCtrlParams["mashVolume"]],
+                              columnData[parameter.ColumnCtrlParams["mashConcentration"]],
+                              columnData[parameter.ColumnCtrlParams["distilateConcentration"]],
+                              columnData[parameter.ColumnCtrlParams["distilateVolume"]],
+                              columnData[parameter.ColumnCtrlParams["vatResidueConcentration"]],
+                              now,
+                              columnData[parameter.ColumnCtrlParams["distillationEndTime"]])
+
     # Create new threads
     thread1 = distillate_quality_circuit.distillateQualityCircuit(1, columnId)
     thread2 = source_composition_circuit.sourceCompositionCircuit(2, columnId)
@@ -62,6 +75,19 @@ def main():
     # Wait for all threads to complete
     for t in threads:
         t.join()
+
+    # Save distillation end time
+    now = int(round(time.time() * 1000))
+    columnData = column_ctrl_mgr.RowGet(columnId)
+    column_ctrl_mgr.RowModify(columnData[parameter.ColumnCtrlParams["columnName"]],
+                              columnId,
+                              columnData[parameter.ColumnCtrlParams["mashVolume"]],
+                              columnData[parameter.ColumnCtrlParams["mashConcentration"]],
+                              columnData[parameter.ColumnCtrlParams["distilateConcentration"]],
+                              columnData[parameter.ColumnCtrlParams["distilateVolume"]],
+                              columnData[parameter.ColumnCtrlParams["vatResidueConcentration"]],
+                              columnData[parameter.ColumnCtrlParams["distillationStartTime"]],
+                              now)
 
     # exit daemon
     os.kill(1, signal.SIGKILL)
