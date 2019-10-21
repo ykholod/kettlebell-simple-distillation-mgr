@@ -43,8 +43,8 @@ class sourceCompositionCircuit(threading.Thread):
         self.mashSpiritVolume = (self.mashConcentration * self.mashVolume) / 100
 
         # Configure PID parameters
-        self.pid = PID.PID(0.5, 1, 0) # TBD ykholod: adjust to particular column. Probably Lastovyak can help!
-        self.pid.setSampleTime(10) # PID computes new value each 10 sec
+        self.pid = PID.PID(1, 0.5, 0) # TBD ykholod: adjust to particular column. Probably Lastovyak can help!
+        self.pid.setSampleTime(1) # PID computes new value each 1 sec
 
         # Column based parameters
         self.columnVolume = 0.628 # Max flegma volume

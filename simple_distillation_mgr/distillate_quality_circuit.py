@@ -39,9 +39,9 @@ class distillateQualityCircuit(threading.Thread):
         distillateQuality = round(column_data[parameter.ColumnCtrlParams["distilateConcentration"]])
 
         # Configure PID parameters
-        self.pid = PID.PID(5, 1, 0) # TBD ykholod: adjust to particular column. Probably Lastovyak can help!
+        self.pid = PID.PID(1, 3, 0) # TBD ykholod: adjust to particular column. Probably Lastovyak can help!
         self.pid.SetPoint = mixture.vle_data_dew[distillateQuality] # Set ideal TopTemp for our quality
-        self.pid.setSampleTime(10) # PID computes new value each 10 sec
+        self.pid.setSampleTime(1) # PID computes new value each 10 sec
 
     def run(self):
         """ Top column temperature manager main loop """
@@ -50,7 +50,7 @@ class distillateQualityCircuit(threading.Thread):
             temperature = data_table.dataTableGet(parameter.TopTempCels)
 
             self.pid.update(temperature)
-            coolerValue = int(self.pid.output)
+            coolerValue = -1 * int(self.pid.output) # Inverting PID controller
             coolerValue = max(min(coolerValue, 100), 10)
 
             # Apply cooler setting
