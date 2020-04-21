@@ -24,6 +24,7 @@ import data_table
 import PID
 
 column_ctrl_mgr = ColumnCtrlMgr()
+maxCubeTemp = 97 # When do we stop in Celsius
 
 class sourceCompositionCircuit(threading.Thread):
     """ Bottom column temperature manager.
@@ -43,21 +44,16 @@ class sourceCompositionCircuit(threading.Thread):
         self.mashSpiritVolume = (self.mashConcentration * self.mashVolume) / 100
 
         # Configure PID parameters
-        self.pid = PID.PID(1, 0.5, 0) # TBD ykholod: adjust to particular column. Probably Lastovyak can help!
+        self.pid = PID.PID(3, 0, 0) # TBD ykholod: adjust to particular column. Probably Lastovyak can help!
         self.pid.setSampleTime(1) # PID computes new value each 1 sec
-
-        # Column based parameters
-        self.columnVolume = 0.628 # Max flegma volume
 
     def run(self):
         """ Bottom column temperature manager main loop """
         while 1:
-            # Calculate and set ideal cube temperature
-            distillateVolume = data_table.dataTableGet(parameter.DistillateFlowMeter)
-            self.pid.SetPoint = self._idealTempCelsGet(distillateVolume) # Set ideal CubeTemp for our quality
-
             # Read CubeTemp
-            temperature = data_table.dataTableGet(parameter.CubeTempCels)
+            temperature = data_table.dataTableGet(parameter.TopTempCels)
+
+            self.pid.SetPoint = maxCubeTemp # Set ideal CubeTemp
 
             self.pid.update(temperature)
             powerValue = int(self.pid.output)
@@ -66,52 +62,11 @@ class sourceCompositionCircuit(threading.Thread):
             # Apply power setting
             data_table.dataTableSet(parameter.PowerControl, powerValue)
 
-            # Exit condition: When we have distilled enought spirit
-            totalSpiritLosses = self._totalSpiritLossesGet(distillateVolume)
-            if totalSpiritLosses > self.mashSpiritVolume:
+            # Exit condition: When CubeTemp gets to maxCubeTemp
+            if temperature >= maxCubeTemp:
                 data_table.dataTableSet(parameter.PowerControl, 0) # Set power off
                 sys.exit(0)
 
             time.sleep(1)
 
-    def _totalSpiritLossesGet(self, distillateVolume):
-        """ Calculate total spirit losses from mash """
-        # Already distilled spirit
-        distilledSpiritVolume = (distillateVolume * self.distillateQuality) / 100
-
-        # Losses to athmosphere (assume they are 2% of distilled spirit)
-        atmosphereLosses = distilledSpiritVolume * 0.02
-
-        # Spirit in column (based on magic flegma numbers)
-        spiritInColumnVolume = (self.columnVolume * (self.distillateQuality - self.mashConcentration)) / 100
-
-        # Total spirit losses
-        totalSpiritLosses = distilledSpiritVolume + atmosphereLosses + spiritInColumnVolume
-
-        return totalSpiritLosses
-
-    def _idealTempCelsGet(self, distillateVolume):
-        """ Calculate ideal temperature in cube """
-        # Already distilled spirit
-        distilledSpiritVolume = (distillateVolume * self.distillateQuality) / 100
-
-        # Losses to athmosphere (assume they are 2% of distilled spirit)
-        atmosphereLosses = distilledSpiritVolume * 0.02
-
-        # Spirit in column (based on magic flegma numbers)
-        spiritInColumnVolume = (self.columnVolume * (self.distillateQuality - self.mashConcentration)) / 100
-
-        # Total spirit losses
-        totalSpiritLosses = distilledSpiritVolume + atmosphereLosses + spiritInColumnVolume
-
-        if totalSpiritLosses < self.mashSpiritVolume:
-            # Spirit left in cube and mash concentration
-            mashSpiritLeftovers = self.mashSpiritVolume - totalSpiritLosses
-            currentMashConcentration = (mashSpiritLeftovers / (self.mashVolume - distilledSpiritVolume - atmosphereLosses)) * 100
-
-            # Get mash bubbling point ideal temperature
-            idealTempCels = mixture.vle_data_bubble[round(currentMashConcentration)]
-        else: # When everything is distilled out
-            idealTempCels = 95.00
-
-        return idealTempCels
+        return
