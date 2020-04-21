@@ -25,6 +25,21 @@ import PID
 
 column_ctrl_mgr = ColumnCtrlMgr()
 maxCubeTemp = 97 # When do we stop in Celsius
+minBoilingTemp = 87 # Cube temperature to enable distillation algorithm
+# PID params depend on Cube Temp
+# CubeTemp : PID param
+pid_param = {
+            87:5,
+            88:7,
+            89:8,
+            90:10,
+            91:12,
+            92:14,
+            93:17,
+            94:20,
+            95:35,
+            96:75,
+            97:75}
 
 class sourceCompositionCircuit(threading.Thread):
     """ Bottom column temperature manager.
@@ -44,19 +59,48 @@ class sourceCompositionCircuit(threading.Thread):
         self.mashSpiritVolume = (self.mashConcentration * self.mashVolume) / 100
 
         # Configure PID parameters
-        self.pid = PID.PID(3, 0, 0) # TBD ykholod: adjust to particular column. Probably Lastovyak can help!
+        self.pid = PID.PID(3, 0, 0)
         self.pid.setSampleTime(1) # PID computes new value each 1 sec
+
+        self.pid.SetPoint = maxCubeTemp # Set ideal CubeTemp
 
     def run(self):
         """ Bottom column temperature manager main loop """
         while 1:
             # Read CubeTemp
-            temperature = data_table.dataTableGet(parameter.TopTempCels)
+            temperature = data_table.dataTableGet(parameter.CubeTempCels)
 
-            self.pid.SetPoint = maxCubeTemp # Set ideal CubeTemp
+            if (temperature < minBoilingTemp):
+                # Clear PID parameters
+                self.pid.clear()
 
-            self.pid.update(temperature)
-            powerValue = int(self.pid.output)
+                # Set new proportional gain
+                self.pid.setKp(3)
+
+                # Set ideal CubeTemp
+                self.pid.SetPoint = maxCubeTemp
+
+                self.pid.update(temperature)
+
+                powerValue = int(self.pid.output)
+            elif (temperature >= 96):
+                powerValue = 75
+            else:
+                pid_param_Kp = pid_param[temperature]
+
+                # Clear PID parameters
+                self.pid.clear()
+
+                # Set new proportional gain
+                self.pid.setKp(pid_param_Kp)
+
+                # Set ideal CubeTemp
+                self.pid.SetPoint = maxCubeTemp
+
+                self.pid.update(temperature)
+                powerValue = int(self.pid.output)
+
+            # Limit power settings due poor power source
             powerValue = max(min(powerValue, 75 ), 30)
 
             # Apply power setting
