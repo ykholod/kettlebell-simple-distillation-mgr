@@ -7,7 +7,8 @@ ARG GIT_COMMIT=unspecified
 LABEL Version=0.1.$GIT_COMMIT
 LABEL INSTALL="docker run --rm --name NAME -d --network="bridge" IMAGE"
 LABEL RUN="docker run -ti IMAGE /bin/ash"
-LABEL UNINSTALL="docker rm --force NAME"
+LABEL UNINSTALL="docker rmi --force NAME"
+LABEL STOP="docker rm --force NAME"
 
 RUN mkdir /simple_distillation_mgr
 WORKDIR /simple_distillation_mgr
